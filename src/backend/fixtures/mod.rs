@@ -80,11 +80,11 @@ where
     run_before_all_if_needed(module_path);
 
     // Run setup functions for this module if any exist
-    if let Ok(fixtures) = SETUP_FIXTURES.lock() {
-        if let Some(setup_funcs) = fixtures.get(module_path) {
-            for setup_fn in setup_funcs {
-                setup_fn();
-            }
+    if let Ok(fixtures) = SETUP_FIXTURES.lock()
+        && let Some(setup_funcs) = fixtures.get(module_path)
+    {
+        for setup_fn in setup_funcs {
+            setup_fn();
         }
     }
 
@@ -92,11 +92,11 @@ where
     let result = panic::catch_unwind(test_fn);
 
     // Always run teardown, even if the test panics
-    if let Ok(fixtures) = TEARDOWN_FIXTURES.lock() {
-        if let Some(teardown_funcs) = fixtures.get(module_path) {
-            for teardown_fn in teardown_funcs {
-                teardown_fn();
-            }
+    if let Ok(fixtures) = TEARDOWN_FIXTURES.lock()
+        && let Some(teardown_funcs) = fixtures.get(module_path)
+    {
+        for teardown_fn in teardown_funcs {
+            teardown_fn();
         }
     }
 
@@ -124,11 +124,11 @@ fn run_before_all_if_needed(module_path: &'static str) {
         executed.insert(module_path);
 
         // Run before_all fixtures
-        if let Ok(fixtures) = BEFORE_ALL_FIXTURES.lock() {
-            if let Some(before_all_funcs) = fixtures.get(module_path) {
-                for before_fn in before_all_funcs {
-                    before_fn();
-                }
+        if let Ok(fixtures) = BEFORE_ALL_FIXTURES.lock()
+            && let Some(before_all_funcs) = fixtures.get(module_path)
+        {
+            for before_fn in before_all_funcs {
+                before_fn();
             }
         }
     }

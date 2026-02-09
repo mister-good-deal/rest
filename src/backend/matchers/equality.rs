@@ -41,7 +41,8 @@ where
 
     fn to_equal_value(self, expected: T) -> Self {
         let result = self.value.equals(&expected);
-        let sentence = AssertionSentence::new("be", format!("equal to {:?}", expected));
+        let sentence = AssertionSentence::new("be", format!("equal to {:?}", expected))
+            .with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }

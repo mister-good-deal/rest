@@ -42,14 +42,16 @@ where
 {
     fn to_be_true(self) -> Self {
         let result = self.value.is_true();
-        let sentence = AssertionSentence::new("be", "true");
+        let sentence = AssertionSentence::new("be", "true")
+            .with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_false(self) -> Self {
         let result = self.value.is_false();
-        let sentence = AssertionSentence::new("be", "false");
+        let sentence = AssertionSentence::new("be", "false")
+            .with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }

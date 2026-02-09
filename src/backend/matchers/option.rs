@@ -76,14 +76,16 @@ where
 {
     fn to_be_some(self) -> Self {
         let result = self.value.is_some_option();
-        let sentence = AssertionSentence::new("be", "some");
+        let sentence = AssertionSentence::new("be", "some")
+            .with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_none(self) -> Self {
         let result = self.value.is_none_option();
-        let sentence = AssertionSentence::new("be", "none");
+        let sentence = AssertionSentence::new("be", "none")
+            .with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
@@ -93,7 +95,8 @@ where
         T: PartialEq,
     {
         let result = self.value.contains_item(expected);
-        let sentence = AssertionSentence::new("contain", format!("{:?}", expected));
+        let sentence = AssertionSentence::new("contain", format!("{:?}", expected))
+            .with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }

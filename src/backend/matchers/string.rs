@@ -98,7 +98,8 @@ where
 {
     fn to_be_empty(self) -> Self {
         let result = self.value.is_empty_string();
-        let sentence = AssertionSentence::new("be", "empty");
+        let sentence = AssertionSentence::new("be", "empty")
+            .with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
@@ -106,7 +107,8 @@ where
     fn to_have_length(self, expected: usize) -> Self {
         let actual_length = self.value.length_string();
         let result = actual_length == expected;
-        let sentence = AssertionSentence::new("have", format!("length {}", expected));
+        let sentence = AssertionSentence::new("have", format!("length {}", expected))
+            .with_actual(format!("{}", actual_length));
 
         return self.add_step(sentence, result);
     }
@@ -117,28 +119,32 @@ where
 
     fn to_contain_substring(self, substring: &str) -> Self {
         let result = self.value.contains_substring(substring);
-        let sentence = AssertionSentence::new("contain", format!("\"{}\"", substring));
+        let sentence = AssertionSentence::new("contain", format!("\"{}\"", substring))
+            .with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_start_with(self, prefix: &str) -> Self {
         let result = self.value.starts_with_substring(prefix);
-        let sentence = AssertionSentence::new("start with", format!("\"{}\"", prefix));
+        let sentence = AssertionSentence::new("start with", format!("\"{}\"", prefix))
+            .with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_end_with(self, suffix: &str) -> Self {
         let result = self.value.ends_with_substring(suffix);
-        let sentence = AssertionSentence::new("end with", format!("\"{}\"", suffix));
+        let sentence = AssertionSentence::new("end with", format!("\"{}\"", suffix))
+            .with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_match(self, pattern: &str) -> Self {
         let result = self.value.matches_pattern(pattern);
-        let sentence = AssertionSentence::new("match", format!("pattern /{}/", pattern));
+        let sentence = AssertionSentence::new("match", format!("pattern /{}/", pattern))
+            .with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }

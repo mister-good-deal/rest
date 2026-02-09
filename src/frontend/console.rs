@@ -49,7 +49,17 @@ impl ConsoleRenderer {
         for step in &result.steps {
             let result_symbol = if step.passed { "✓" } else { "✗" };
             // For individual steps, conjugate based on the subject name
-            let formatted_sentence = step.sentence.format_with_conjugation(result.expr_str);
+            let formatted_sentence = if step.passed {
+                step.sentence.format_with_conjugation(result.expr_str)
+            } else {
+                // On failure, append the actual value for better diagnostics
+                let base = step.sentence.format_with_conjugation(result.expr_str);
+                if let Some(ref actual) = step.sentence.actual_value {
+                    format!("{} (got {})", base, actual)
+                } else {
+                    base
+                }
+            };
 
             // Always indent and add pass/fail prefix
             details.push_str(&format!("  {} {}\n", result_symbol, formatted_sentence));

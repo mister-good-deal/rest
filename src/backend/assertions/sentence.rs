@@ -124,6 +124,11 @@ impl AssertionSentence {
     }
 
     /// Conjugate the verb based on plurality
+    ///
+    /// Note: We use a manual match here rather than `cruet` because `cruet` only handles
+    /// noun inflections (pluralize/singularize), not verb conjugation. Since the set of
+    /// verbs used by matchers is small and controlled by this crate, a manual match is
+    /// both correct and sufficient.
     fn conjugate_verb(&self, is_plural: bool) -> String {
         // Special case handling for common verbs
         match self.verb.as_str() {

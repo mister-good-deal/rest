@@ -1,3 +1,4 @@
+use cruet::Inflector;
 use std::fmt::{self, Display, Formatter};
 
 /// Represents a complete sentence structure for an assertion
@@ -86,44 +87,21 @@ impl AssertionSentence {
         return result;
     }
 
-    /// Determine if a subject name is likely plural
+    /// Determine if a subject name is likely plural using the cruet crate
+    /// for proper English singularization. If singularizing a word changes it,
+    /// the original was plural.
     fn is_plural_subject(subject: &str) -> bool {
         // Extract the base variable name from expressions like "var.method()" or "&var"
         let base_name = Self::extract_base_name(subject);
 
-        // Common plural endings in English
-        let plural_endings = ["s", "es", "ies"];
+        // For snake_case variable names (common in Rust), check the last word segment
+        let last_word = base_name.split('_').next_back().unwrap_or(&base_name);
+        let last_word_lower = last_word.to_lowercase();
 
-        // Check for common plural variable naming patterns
-        let is_plural_ending = plural_endings.iter().any(|ending| base_name.ends_with(ending));
+        // Use cruet's singularization: if singularizing changes the word, it was plural
+        let singularized = last_word_lower.to_singular();
 
-        // Also check for commonly used pluralized variable names in programming
-        let common_plurals = [
-            "items",
-            "elements",
-            "values",
-            "arrays",
-            "lists",
-            "maps",
-            "sets",
-            "objects",
-            "attributes",
-            "properties",
-            "entries",
-            "keys",
-            "numbers",
-            "strings",
-            "data",
-            "results",
-            "options",
-            "errors",
-            "children",
-        ];
-
-        let is_common_plural = common_plurals.contains(&base_name.to_lowercase().as_str());
-
-        // Return true if either condition is met
-        return is_plural_ending || is_common_plural;
+        return singularized != last_word_lower;
     }
 
     /// Extract the base variable name from expressions
@@ -146,6 +124,11 @@ impl AssertionSentence {
     }
 
     /// Conjugate the verb based on plurality
+    ///
+    /// Note: We use a manual match here rather than `cruet` because `cruet` only handles
+    /// noun inflections (pluralize/singularize), not verb conjugation. Since the set of
+    /// verbs used by matchers is small and controlled by this crate, a manual match is
+    /// both correct and sufficient.
     fn conjugate_verb(&self, is_plural: bool) -> String {
         // Special case handling for common verbs
         match self.verb.as_str() {
@@ -308,15 +291,25 @@ mod tests {
         assert_eq!(AssertionSentence::is_plural_subject("count"), false);
         assert_eq!(AssertionSentence::is_plural_subject("item"), false);
 
+        // Test singular subjects that end in 's' (the bug this fix addresses)
+        assert_eq!(AssertionSentence::is_plural_subject("status"), false);
+        assert_eq!(AssertionSentence::is_plural_subject("address"), false);
+        assert_eq!(AssertionSentence::is_plural_subject("process"), false);
+        assert_eq!(AssertionSentence::is_plural_subject("bus"), false);
+
         // Test plural subjects
         assert_eq!(AssertionSentence::is_plural_subject("values"), true);
         assert_eq!(AssertionSentence::is_plural_subject("numbers"), true);
         assert_eq!(AssertionSentence::is_plural_subject("items"), true);
         assert_eq!(AssertionSentence::is_plural_subject("lists"), true);
-
-        // Test common plural variable names
+        assert_eq!(AssertionSentence::is_plural_subject("entries"), true);
         assert_eq!(AssertionSentence::is_plural_subject("data"), true);
-        assert_eq!(AssertionSentence::is_plural_subject("children"), true);
+
+        // Test snake_case compound variable names (checks last segment)
+        assert_eq!(AssertionSentence::is_plural_subject("my_values"), true);
+        assert_eq!(AssertionSentence::is_plural_subject("test_items"), true);
+        assert_eq!(AssertionSentence::is_plural_subject("user_status"), false);
+        assert_eq!(AssertionSentence::is_plural_subject("http_address"), false);
     }
 
     #[test]

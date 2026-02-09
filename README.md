@@ -23,7 +23,6 @@ expressive assertions with readable error messages while maintaining compatibili
 ## Roadmap
 
 - [x] Basic matchers for primitive types
-- [x] Basic matchers for primitive types
 - [x] Matchers for collections (Vec, HashMap, etc.)
 - [x] Matchers for Option and Result types
 - [x] Logical chain modifiers (AND/OR)

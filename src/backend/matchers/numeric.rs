@@ -152,11 +152,11 @@ impl AsNumeric for usize {
     }
 
     fn is_even(&self) -> bool {
-        *self % 2 == 0
+        (*self).is_multiple_of(2)
     }
 
     fn is_odd(&self) -> bool {
-        *self % 2 != 0
+        !(*self).is_multiple_of(2)
     }
 }
 
@@ -195,11 +195,11 @@ impl AsNumeric for &usize {
     }
 
     fn is_even(&self) -> bool {
-        **self % 2 == 0
+        (**self).is_multiple_of(2)
     }
 
     fn is_odd(&self) -> bool {
-        **self % 2 != 0
+        !(**self).is_multiple_of(2)
     }
 }
 

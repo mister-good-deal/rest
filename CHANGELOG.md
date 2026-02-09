@@ -1,5 +1,10 @@
 # Changelog
 
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 ## 0.5.1 (2025-04-27)
 
 ### Fixed
@@ -20,17 +25,6 @@
   - Renamed GitHub repository URLs
 
 ## 0.4.3 (2024-04-17)
-
-### Added
-
-- Added test lifecycle fixture support:
-  - New `#[before_all]` attribute for code that runs once before any test in a module
-  - New `#[after_all]` attribute for code that runs once after all tests in a module
-  - Complete test lifecycle management with before_all → setup → test → teardown → after_all
-  - Documentation in wiki/Fixtures.md, including examples of all fixture types
-  - New detailed examples in examples/module_lifecycle.rs
-
-## 0.4.2 (2024-04-17)
 
 ### Added
 

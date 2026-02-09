@@ -4,24 +4,23 @@
 //! It works with procedural macros to provide a clean API for setting up and tearing
 //! down test environments.
 
-use once_cell::sync::Lazy;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::panic::{self, AssertUnwindSafe};
-use std::sync::Mutex;
+use std::sync::{LazyLock, Mutex};
 
 /// Simple fixture registration system that uses a global hashmap instead of inventory
 pub type FixtureFunc = Box<dyn Fn() + Send + Sync + 'static>;
 
-static SETUP_FIXTURES: Lazy<Mutex<HashMap<&'static str, Vec<FixtureFunc>>>> = Lazy::new(|| Mutex::new(HashMap::new()));
+static SETUP_FIXTURES: LazyLock<Mutex<HashMap<&'static str, Vec<FixtureFunc>>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
-static TEARDOWN_FIXTURES: Lazy<Mutex<HashMap<&'static str, Vec<FixtureFunc>>>> = Lazy::new(|| Mutex::new(HashMap::new()));
+static TEARDOWN_FIXTURES: LazyLock<Mutex<HashMap<&'static str, Vec<FixtureFunc>>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
-static BEFORE_ALL_FIXTURES: Lazy<Mutex<HashMap<&'static str, Vec<FixtureFunc>>>> = Lazy::new(|| Mutex::new(HashMap::new()));
+static BEFORE_ALL_FIXTURES: LazyLock<Mutex<HashMap<&'static str, Vec<FixtureFunc>>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
-static AFTER_ALL_FIXTURES: Lazy<Mutex<HashMap<&'static str, Vec<FixtureFunc>>>> = Lazy::new(|| Mutex::new(HashMap::new()));
+static AFTER_ALL_FIXTURES: LazyLock<Mutex<HashMap<&'static str, Vec<FixtureFunc>>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
-static EXECUTED_MODULES: Lazy<Mutex<HashSet<&'static str>>> = Lazy::new(|| Mutex::new(HashSet::new()));
+static EXECUTED_MODULES: LazyLock<Mutex<HashSet<&'static str>>> = LazyLock::new(|| Mutex::new(HashSet::new()));
 
 /// Register a setup function for a module
 ///
@@ -81,11 +80,11 @@ where
     run_before_all_if_needed(module_path);
 
     // Run setup functions for this module if any exist
-    if let Ok(fixtures) = SETUP_FIXTURES.lock() {
-        if let Some(setup_funcs) = fixtures.get(module_path) {
-            for setup_fn in setup_funcs {
-                setup_fn();
-            }
+    if let Ok(fixtures) = SETUP_FIXTURES.lock()
+        && let Some(setup_funcs) = fixtures.get(module_path)
+    {
+        for setup_fn in setup_funcs {
+            setup_fn();
         }
     }
 
@@ -93,11 +92,11 @@ where
     let result = panic::catch_unwind(test_fn);
 
     // Always run teardown, even if the test panics
-    if let Ok(fixtures) = TEARDOWN_FIXTURES.lock() {
-        if let Some(teardown_funcs) = fixtures.get(module_path) {
-            for teardown_fn in teardown_funcs {
-                teardown_fn();
-            }
+    if let Ok(fixtures) = TEARDOWN_FIXTURES.lock()
+        && let Some(teardown_funcs) = fixtures.get(module_path)
+    {
+        for teardown_fn in teardown_funcs {
+            teardown_fn();
         }
     }
 
@@ -125,11 +124,11 @@ fn run_before_all_if_needed(module_path: &'static str) {
         executed.insert(module_path);
 
         // Run before_all fixtures
-        if let Ok(fixtures) = BEFORE_ALL_FIXTURES.lock() {
-            if let Some(before_all_funcs) = fixtures.get(module_path) {
-                for before_fn in before_all_funcs {
-                    before_fn();
-                }
+        if let Ok(fixtures) = BEFORE_ALL_FIXTURES.lock()
+            && let Some(before_all_funcs) = fixtures.get(module_path)
+        {
+            for before_fn in before_all_funcs {
+                before_fn();
             }
         }
     }

@@ -1,7 +1,6 @@
-use once_cell::sync::Lazy;
 use rest::prelude::*;
 use std::sync::{
-    Mutex,
+    LazyLock, Mutex,
     atomic::{AtomicUsize, Ordering},
 };
 
@@ -12,7 +11,7 @@ static TEARDOWN_COUNTER: AtomicUsize = AtomicUsize::new(0);
 static AFTER_ALL_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 // Mutex to ensure the before_all check is synchronized in parallel execution
-static BEFORE_ALL_TEST_MUTEX: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
+static BEFORE_ALL_TEST_MUTEX: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
 
 // Module testing the before_all and after_all attributes
 #[with_fixtures_module]
@@ -81,7 +80,7 @@ mod lifecycle_fixtures {
 
 // Static variable to track after_all execution
 static AFTER_ALL_EXECUTED: AtomicUsize = AtomicUsize::new(0);
-static AFTER_ALL_MUTEX: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
+static AFTER_ALL_MUTEX: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
 
 // Module to test after_all fixtures
 #[with_fixtures_module]

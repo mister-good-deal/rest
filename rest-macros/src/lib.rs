@@ -232,7 +232,6 @@ impl VisitMut for TestFunctionVisitor {
 ///         // Clean up test environment
 ///     }
 ///     
-///     #[test]
 ///     fn test_something() {
 ///         // Test code - will automatically run with fixtures
 ///         expect!(2 + 2).to_equal(4);
@@ -254,12 +253,12 @@ pub fn with_fixtures_module(_attr: TokenStream, item: TokenStream) -> TokenStrea
             }
 
             // Recursively process nested modules as well
-            if let Item::Mod(nested_mod) = item {
-                if let Some((_, nested_items)) = &mut nested_mod.content {
-                    for nested_item in nested_items.iter_mut() {
-                        if let Item::Fn(func) = nested_item {
-                            visitor.visit_item_fn_mut(func);
-                        }
+            if let Item::Mod(nested_mod) = item
+                && let Some((_, nested_items)) = &mut nested_mod.content
+            {
+                for nested_item in nested_items.iter_mut() {
+                    if let Item::Fn(func) = nested_item {
+                        visitor.visit_item_fn_mut(func);
                     }
                 }
             }

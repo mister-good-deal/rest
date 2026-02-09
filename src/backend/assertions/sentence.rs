@@ -14,12 +14,21 @@ pub struct AssertionSentence {
     pub qualifiers: Vec<String>,
     /// Whether the assertion is negated (e.g., "not be", "does not have")
     pub negated: bool,
+    /// The actual value being tested, shown on failure (e.g., "5", "\"hello\"")
+    pub actual_value: Option<String>,
 }
 
 impl AssertionSentence {
     /// Create a new assertion sentence
     pub fn new(verb: impl Into<String>, object: impl Into<String>) -> Self {
-        return Self { subject: "".to_string(), verb: verb.into(), object: object.into(), qualifiers: Vec::new(), negated: false };
+        return Self {
+            subject: "".to_string(),
+            verb: verb.into(),
+            object: object.into(),
+            qualifiers: Vec::new(),
+            negated: false,
+            actual_value: None,
+        };
     }
 
     /// Set whether the assertion is negated
@@ -31,6 +40,12 @@ impl AssertionSentence {
     /// Add a qualifier to the assertion
     pub fn with_qualifier(mut self, qualifier: impl Into<String>) -> Self {
         self.qualifiers.push(qualifier.into());
+        return self;
+    }
+
+    /// Set the actual value that was tested, shown on failure
+    pub fn with_actual(mut self, actual: impl Into<String>) -> Self {
+        self.actual_value = Some(actual.into());
         return self;
     }
 
@@ -62,6 +77,17 @@ impl AssertionSentence {
         }
 
         return result;
+    }
+
+    /// Format the sentence into a readable string with actual value appended on failure
+    pub fn format_with_actual(&self) -> String {
+        let base = self.format();
+
+        if let Some(ref actual) = self.actual_value {
+            return format!("{} (got {})", base, actual);
+        }
+
+        return base;
     }
 
     /// Format the sentence with the correct verb conjugation based on the subject

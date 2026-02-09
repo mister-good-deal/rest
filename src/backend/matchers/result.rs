@@ -77,28 +77,32 @@ where
 {
     fn to_be_ok(self) -> Self {
         let result = self.value.is_ok_result();
-        let sentence = AssertionSentence::new("be", "ok");
+        let sentence = AssertionSentence::new("be", "ok")
+            .with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_err(self) -> Self {
         let result = self.value.is_err_result();
-        let sentence = AssertionSentence::new("be", "err");
+        let sentence = AssertionSentence::new("be", "err")
+            .with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_contain_ok<U: PartialEq<T> + Debug>(self, expected: &U) -> Self {
         let result = self.value.contains_ok(expected);
-        let sentence = AssertionSentence::new("contain", format!("ok value {:?}", expected));
+        let sentence = AssertionSentence::new("contain", format!("ok value {:?}", expected))
+            .with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_contain_err<U: PartialEq<E> + Debug>(self, expected: &U) -> Self {
         let result = self.value.contains_err(expected);
-        let sentence = AssertionSentence::new("contain", format!("err value {:?}", expected));
+        let sentence = AssertionSentence::new("contain", format!("err value {:?}", expected))
+            .with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }

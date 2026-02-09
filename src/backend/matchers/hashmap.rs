@@ -111,7 +111,8 @@ where
 {
     fn to_be_empty(self) -> Self {
         let result = self.value.is_map_empty();
-        let sentence = AssertionSentence::new("be", "empty");
+        let sentence = AssertionSentence::new("be", "empty")
+            .with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
@@ -119,7 +120,8 @@ where
     fn to_have_length(self, expected: usize) -> Self {
         let actual_length = self.value.map_length();
         let result = actual_length == expected;
-        let sentence = AssertionSentence::new("have", format!("length {}", expected));
+        let sentence = AssertionSentence::new("have", format!("length {}", expected))
+            .with_actual(format!("{}", actual_length));
 
         return self.add_step(sentence, result);
     }
@@ -130,7 +132,8 @@ where
         Q: Hash + Eq + Debug + ?Sized,
     {
         let result = self.value.map_contains_key(key);
-        let sentence = AssertionSentence::new("contain", format!("key {:?}", key));
+        let sentence = AssertionSentence::new("contain", format!("key {:?}", key))
+            .with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
@@ -143,7 +146,8 @@ where
         R: PartialEq + Debug + ?Sized,
     {
         let result = self.value.map_contains_entry(key, value);
-        let sentence = AssertionSentence::new("contain", format!("entry ({:?}, {:?})", key, value));
+        let sentence = AssertionSentence::new("contain", format!("entry ({:?}, {:?})", key, value))
+            .with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }

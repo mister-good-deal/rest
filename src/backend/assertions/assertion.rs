@@ -269,9 +269,9 @@ impl<T> Assertion<T> {
         // In test modules, we need exact format for #[should_panic(expected="...")] checks
         if context.is_module_test || context.is_test {
             if self.negated {
-                return format!("not {}", step.sentence.format());
+                return format!("not {}", step.sentence.format_with_actual());
             } else {
-                return step.sentence.format();
+                return step.sentence.format_with_actual();
             }
         }
 

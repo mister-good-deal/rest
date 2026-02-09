@@ -188,7 +188,8 @@ where
 {
     fn to_be_empty(self) -> Self {
         let result = self.value.is_empty();
-        let sentence = AssertionSentence::new("be", "empty");
+        let sentence = AssertionSentence::new("be", "empty")
+            .with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
@@ -196,21 +197,24 @@ where
     fn to_have_length(self, expected: usize) -> Self {
         let actual_length = self.value.length();
         let result = actual_length == expected;
-        let sentence = AssertionSentence::new("have", format!("length {}", expected));
+        let sentence = AssertionSentence::new("have", format!("length {}", expected))
+            .with_actual(format!("{}", actual_length));
 
         return self.add_step(sentence, result);
     }
 
     fn to_contain<U: PartialEq<T> + Debug>(self, expected: U) -> Self {
         let result = self.value.contains_item(&expected);
-        let sentence = AssertionSentence::new("contain", format!("{:?}", expected));
+        let sentence = AssertionSentence::new("contain", format!("{:?}", expected))
+            .with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_contain_all_of<U: PartialEq<T> + Debug>(self, expected: &[U]) -> Self {
         let result = self.value.contains_all_items(expected);
-        let sentence = AssertionSentence::new("contain", format!("all of {:?}", expected));
+        let sentence = AssertionSentence::new("contain", format!("all of {:?}", expected))
+            .with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
@@ -220,11 +224,13 @@ where
 
         // Different message if lengths don't match
         if self.value.length() != expected.len() {
-            let sentence = AssertionSentence::new("equal", format!("collection {:?} (different lengths)", expected));
+            let sentence = AssertionSentence::new("equal", format!("collection {:?} (different lengths)", expected))
+                .with_actual(format!("{:?}", self.value));
             return self.add_step(sentence, result);
         }
 
-        let sentence = AssertionSentence::new("equal", format!("collection {:?}", expected));
+        let sentence = AssertionSentence::new("equal", format!("collection {:?}", expected))
+            .with_actual(format!("{:?}", self.value));
         return self.add_step(sentence, result);
     }
 }

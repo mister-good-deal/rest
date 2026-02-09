@@ -1,5 +1,6 @@
 use crate::backend::Assertion;
 use crate::backend::assertions::sentence::AssertionSentence;
+use regex::Regex;
 use std::fmt::Debug;
 
 /// Trait for string assertions
@@ -51,8 +52,11 @@ impl AsString for String {
     }
 
     fn matches_pattern(&self, pattern: &str) -> bool {
-        // Simple implementation - in a real regex impl this would be different
-        self.contains(pattern)
+        let re = Regex::new(pattern).unwrap_or_else(|e| {
+            panic!("Invalid regex pattern '{}': {}", pattern, e);
+        });
+
+        return re.is_match(self);
     }
 }
 
@@ -79,8 +83,11 @@ impl AsString for &str {
     }
 
     fn matches_pattern(&self, pattern: &str) -> bool {
-        // Simple implementation - in a real regex impl this would be different
-        self.contains(pattern)
+        let re = Regex::new(pattern).unwrap_or_else(|e| {
+            panic!("Invalid regex pattern '{}': {}", pattern, e);
+        });
+
+        return re.is_match(self);
     }
 }
 
@@ -130,9 +137,8 @@ where
     }
 
     fn to_match(self, pattern: &str) -> Self {
-        // This is a simplified implementation since we can't easily include a regex library
         let result = self.value.matches_pattern(pattern);
-        let sentence = AssertionSentence::new("match", format!("pattern \"{}\"", pattern));
+        let sentence = AssertionSentence::new("match", format!("pattern /{}/", pattern));
 
         return self.add_step(sentence, result);
     }
@@ -273,10 +279,25 @@ mod tests {
         // Disable deduplication for tests
         crate::Reporter::disable_deduplication();
 
-        // These should pass (simplified implementation)
+        // Plain substring patterns (backward compatible)
         expect!("hello world").to_match("world");
         expect!("hello world").not().to_match("goodbye");
         expect!(String::from("hello world")).to_match("hello");
+
+        // Actual regex patterns
+        expect!("hello123").to_match("\\d+");
+        expect!("hello123").to_match("^hello\\d+$");
+        expect!("hello").not().to_match("\\d+");
+        expect!("2024-01-15").to_match("\\d{4}-\\d{2}-\\d{2}");
+        expect!("test@example.com").to_match("[a-zA-Z]+@[a-zA-Z]+\\.[a-zA-Z]+");
+        expect!(String::from("abc123")).to_match("[a-z]+\\d+");
+    }
+
+    #[test]
+    #[should_panic(expected = "Invalid regex pattern")]
+    fn test_invalid_regex_panics() {
+        let _assertion = expect!("hello").to_match("[invalid");
+        std::hint::black_box(_assertion);
     }
 
     #[test]

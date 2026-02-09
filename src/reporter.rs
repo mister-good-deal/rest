@@ -2,12 +2,11 @@ use crate::backend::{Assertion, TestSessionResult};
 use crate::config::Config;
 use crate::events::{AssertionEvent, EventEmitter, on_failure, on_success};
 use crate::frontend::ConsoleRenderer;
-use once_cell::sync::Lazy;
 use std::cell::RefCell;
 use std::collections::HashSet;
-use std::sync::RwLock;
+use std::sync::{LazyLock, RwLock};
 
-pub(crate) static GLOBAL_CONFIG: Lazy<RwLock<Config>> = Lazy::new(|| RwLock::new(Config::new()));
+pub(crate) static GLOBAL_CONFIG: LazyLock<RwLock<Config>> = LazyLock::new(|| RwLock::new(Config::new()));
 
 thread_local! {
     static TEST_SESSION: RefCell<TestSessionResult> = RefCell::new(TestSessionResult::default());

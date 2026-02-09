@@ -23,6 +23,7 @@ expressive assertions with readable error messages while maintaining compatibili
 ## Roadmap
 
 - [x] Basic matchers for primitive types
+- [x] Basic matchers for primitive types
 - [x] Matchers for collections (Vec, HashMap, etc.)
 - [x] Matchers for Option and Result types
 - [x] Logical chain modifiers (AND/OR)
@@ -31,17 +32,28 @@ expressive assertions with readable error messages while maintaining compatibili
 - [x] CI/CD integration for automatic releases
 - [x] Documentation and examples
 - [x] Test fixtures for setup and teardown
-- [ ] More advanced matchers (e.g., regex, custom types)
-- [ ] Performance optimizations
-- [ ] Support for async testing
-- [ ] Custom console client (e.g., for CI/CD or nice terminal output)
-- [ ] Support for code coverage reporting
-- [ ] Support for mocking and stubbing
-- [ ] Integration with other testing frameworks (e.g., mockito, assert_eq)
-- [ ] Community contributions and feedback
-- [ ] Continuous improvement based on user feedback
-- [ ] Enhanced error reporting and debugging tools
-- [ ] Integration with popular CI/CD tools
+
+### v0.6.0 — Critical Fixes
+
+- [ ] Generic numeric matchers (support all integer and float types, not just i32)
+- [ ] Real regex matching in `to_match` (currently just uses `contains()`)
+- [ ] Show actual vs expected values in error messages
+- [ ] Remove unused/redundant dependencies (lazy_static, once_cell, thread_local)
+- [ ] Fix plural conjugation bug for variable names ending in "s"
+
+### v0.7.0 — New Matchers
+
+- [ ] Float matchers with approximate equality (`to_be_close_to`)
+- [ ] Panic matchers (`to_panic`, `to_panic_with`)
+- [ ] Reduce code duplication in matcher helper traits
+- [ ] Improve test coverage for ConsoleRenderer and modifiers
+
+### v1.0.0 — Ecosystem
+
+- [ ] Mocking and stubbing framework
+- [ ] Diff output for complex value comparison (like pretty_assertions)
+- [ ] Custom console client for enhanced terminal output
+- [ ] Comprehensive documentation and API stabilization
 
 ## Quick Start
 

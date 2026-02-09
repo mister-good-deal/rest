@@ -1,8 +1,7 @@
-use once_cell::sync::Lazy;
 use rest::prelude::*;
 use std::cell::RefCell;
 use std::sync::{
-    Mutex,
+    LazyLock, Mutex,
     atomic::{AtomicUsize, Ordering},
 };
 
@@ -11,7 +10,7 @@ static SETUP_COUNTER: AtomicUsize = AtomicUsize::new(0);
 static TEARDOWN_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 // Mutex for test value verification
-static TEST_VALUE_MUTEX: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
+static TEST_VALUE_MUTEX: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
 
 // Test state shared between tests
 thread_local! {

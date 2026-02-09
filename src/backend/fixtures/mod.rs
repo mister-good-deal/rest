@@ -4,24 +4,23 @@
 //! It works with procedural macros to provide a clean API for setting up and tearing
 //! down test environments.
 
-use once_cell::sync::Lazy;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::panic::{self, AssertUnwindSafe};
-use std::sync::Mutex;
+use std::sync::{LazyLock, Mutex};
 
 /// Simple fixture registration system that uses a global hashmap instead of inventory
 pub type FixtureFunc = Box<dyn Fn() + Send + Sync + 'static>;
 
-static SETUP_FIXTURES: Lazy<Mutex<HashMap<&'static str, Vec<FixtureFunc>>>> = Lazy::new(|| Mutex::new(HashMap::new()));
+static SETUP_FIXTURES: LazyLock<Mutex<HashMap<&'static str, Vec<FixtureFunc>>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
-static TEARDOWN_FIXTURES: Lazy<Mutex<HashMap<&'static str, Vec<FixtureFunc>>>> = Lazy::new(|| Mutex::new(HashMap::new()));
+static TEARDOWN_FIXTURES: LazyLock<Mutex<HashMap<&'static str, Vec<FixtureFunc>>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
-static BEFORE_ALL_FIXTURES: Lazy<Mutex<HashMap<&'static str, Vec<FixtureFunc>>>> = Lazy::new(|| Mutex::new(HashMap::new()));
+static BEFORE_ALL_FIXTURES: LazyLock<Mutex<HashMap<&'static str, Vec<FixtureFunc>>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
-static AFTER_ALL_FIXTURES: Lazy<Mutex<HashMap<&'static str, Vec<FixtureFunc>>>> = Lazy::new(|| Mutex::new(HashMap::new()));
+static AFTER_ALL_FIXTURES: LazyLock<Mutex<HashMap<&'static str, Vec<FixtureFunc>>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
-static EXECUTED_MODULES: Lazy<Mutex<HashSet<&'static str>>> = Lazy::new(|| Mutex::new(HashSet::new()));
+static EXECUTED_MODULES: LazyLock<Mutex<HashSet<&'static str>>> = LazyLock::new(|| Mutex::new(HashSet::new()));
 
 /// Register a setup function for a module
 ///

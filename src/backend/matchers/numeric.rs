@@ -85,70 +85,72 @@ where
 {
     fn to_be_positive(self) -> Self {
         let result = self.value > V::zero();
-        let sentence = AssertionSentence::new("be", "positive");
+        let sentence = AssertionSentence::new("be", "positive").with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_negative(self) -> Self {
         let result = self.value.is_negative();
-        let sentence = AssertionSentence::new("be", "negative");
+        let sentence = AssertionSentence::new("be", "negative").with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_zero(self) -> Self {
         let result = self.value == V::zero();
-        let sentence = AssertionSentence::new("be", "zero");
+        let sentence = AssertionSentence::new("be", "zero").with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_greater_than(self, expected: V) -> Self {
         let result = self.value > expected;
-        let sentence = AssertionSentence::new("be", format!("greater than {}", expected));
+        let sentence = AssertionSentence::new("be", format!("greater than {}", expected)).with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_greater_than_or_equal(self, expected: V) -> Self {
         let result = self.value >= expected;
-        let sentence = AssertionSentence::new("be", format!("greater than or equal to {}", expected));
+        let sentence =
+            AssertionSentence::new("be", format!("greater than or equal to {}", expected)).with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_less_than(self, expected: V) -> Self {
         let result = self.value < expected;
-        let sentence = AssertionSentence::new("be", format!("less than {}", expected));
+        let sentence = AssertionSentence::new("be", format!("less than {}", expected)).with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_less_than_or_equal(self, expected: V) -> Self {
         let result = self.value <= expected;
-        let sentence = AssertionSentence::new("be", format!("less than or equal to {}", expected));
+        let sentence = AssertionSentence::new("be", format!("less than or equal to {}", expected)).with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_in_range(self, range: Range<V>) -> Self {
         let result = range.contains(&self.value);
-        let sentence = AssertionSentence::new("be", format!("in range {}..{}", range.start, range.end));
+        let sentence =
+            AssertionSentence::new("be", format!("in range {}..{}", range.start, range.end)).with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_even(self) -> Self {
         let result = self.value.is_even();
-        let sentence = AssertionSentence::new("be", "even");
+        let sentence = AssertionSentence::new("be", "even").with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_odd(self) -> Self {
         let result = self.value.is_odd();
-        let sentence = AssertionSentence::new("be", "odd");
+        let sentence = AssertionSentence::new("be", "odd").with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
@@ -161,70 +163,72 @@ where
 {
     fn to_be_positive(self) -> Self {
         let result = *self.value > V::zero();
-        let sentence = AssertionSentence::new("be", "positive");
+        let sentence = AssertionSentence::new("be", "positive").with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_negative(self) -> Self {
         let result = self.value.is_negative();
-        let sentence = AssertionSentence::new("be", "negative");
+        let sentence = AssertionSentence::new("be", "negative").with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_zero(self) -> Self {
         let result = *self.value == V::zero();
-        let sentence = AssertionSentence::new("be", "zero");
+        let sentence = AssertionSentence::new("be", "zero").with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_greater_than(self, expected: V) -> Self {
         let result = *self.value > expected;
-        let sentence = AssertionSentence::new("be", format!("greater than {}", expected));
+        let sentence = AssertionSentence::new("be", format!("greater than {}", expected)).with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_greater_than_or_equal(self, expected: V) -> Self {
         let result = *self.value >= expected;
-        let sentence = AssertionSentence::new("be", format!("greater than or equal to {}", expected));
+        let sentence =
+            AssertionSentence::new("be", format!("greater than or equal to {}", expected)).with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_less_than(self, expected: V) -> Self {
         let result = *self.value < expected;
-        let sentence = AssertionSentence::new("be", format!("less than {}", expected));
+        let sentence = AssertionSentence::new("be", format!("less than {}", expected)).with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_less_than_or_equal(self, expected: V) -> Self {
         let result = *self.value <= expected;
-        let sentence = AssertionSentence::new("be", format!("less than or equal to {}", expected));
+        let sentence = AssertionSentence::new("be", format!("less than or equal to {}", expected)).with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_in_range(self, range: Range<V>) -> Self {
         let result = range.contains(self.value);
-        let sentence = AssertionSentence::new("be", format!("in range {}..{}", range.start, range.end));
+        let sentence =
+            AssertionSentence::new("be", format!("in range {}..{}", range.start, range.end)).with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_even(self) -> Self {
         let result = self.value.is_even();
-        let sentence = AssertionSentence::new("be", "even");
+        let sentence = AssertionSentence::new("be", "even").with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_odd(self) -> Self {
         let result = self.value.is_odd();
-        let sentence = AssertionSentence::new("be", "odd");
+        let sentence = AssertionSentence::new("be", "odd").with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }

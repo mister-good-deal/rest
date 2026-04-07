@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.6.0 (Unreleased)
+
+### Added
+
+- Show actual values in assertion failure messages — failed assertions now display `(got <value>)` for immediate diagnostics (#11, #27)
+- Generic numeric matchers — support all 14 standard Rust numeric types (`i8`..`i128`, `u8`..`u128`, `isize`, `usize`, `f32`, `f64`) with blanket impls for owned and referenced values (#10, #26)
+- GitHub issue/PR templates (#7)
+
+### Fixed
+
+- `to_match()` now uses actual regex matching via the `regex` crate instead of substring check (#9, #25)
+- Plural conjugation bug — variable names ending in "s" (e.g., `status`, `address`) no longer incorrectly conjugate as plural; now uses `cruet` crate for proper detection (#12, #13, #24)
+- Removed unused dependencies: `thread_local`, `lazy_static` (#12, #23)
+- Eliminated flaky config tests — `Config::from_env()` now accepts an injectable env reader, removing all `unsafe` env var mutation from tests (#30, #31)
+
+### Changed
+
+- `NumericMatchers` trait now uses generic `T` parameter instead of hardcoded `i32` — **breaking change** for custom implementations (#10, #26)
+
 ## 0.5.1 (2025-04-27)
 
 ### Fixed

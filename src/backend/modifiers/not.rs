@@ -18,6 +18,7 @@ impl<T: Clone> NotModifier<T> for Assertion<T> {
             steps: self.steps.clone(),
             in_chain: self.in_chain, // Preserve chain status
             is_final: self.is_final, // Preserve finality status
+            evaluated: false,
         };
     }
 }

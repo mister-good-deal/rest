@@ -26,6 +26,7 @@ impl<T: Clone> AndModifier<T> for Assertion<T> {
             steps: result.steps.clone(),
             in_chain: true,  // Always mark as part of a chain
             is_final: false, // This is not the final step - there will be more after 'and()'
+            evaluated: false,
         };
     }
 }

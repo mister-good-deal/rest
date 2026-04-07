@@ -36,6 +36,8 @@ pub struct Assertion<T> {
     pub in_chain: bool,
     /// Flag to mark the final step in a chain
     pub is_final: bool,
+    /// Flag to mark this assertion as already evaluated (event copies should not re-trigger Drop)
+    pub evaluated: bool,
 }
 
 /// Represents the complete result of a test session
@@ -59,6 +61,7 @@ impl<T> Assertion<T> {
             steps: Vec::new(),
             in_chain: false,
             is_final: true, // By default, single-step assertions are final
+            evaluated: false,
         };
     }
 
@@ -90,6 +93,7 @@ impl<T> Assertion<T> {
             steps: new_steps,
             in_chain: true, // Mark this as part of a chain
             is_final: true, // This step is final until a modifier makes it non-final
+            evaluated: false,
         };
     }
 
@@ -238,6 +242,7 @@ impl<T> Assertion<T> {
             steps: self.steps.clone(),
             in_chain: self.in_chain,
             is_final: self.is_final,
+            evaluated: true,
         };
 
         // Emit appropriate events based on assertion result
@@ -306,8 +311,8 @@ thread_local! {
 /// For automatic evaluation of assertions when the Assertion drops
 impl<T> Drop for Assertion<T> {
     fn drop(&mut self) {
-        // Skip if the steps are empty or if we're dropping during a panic
-        if self.steps.is_empty() || std::thread::panicking() {
+        // Skip if already evaluated (event copies), steps are empty, or panicking
+        if self.evaluated || self.steps.is_empty() || std::thread::panicking() {
             return;
         }
 
@@ -408,6 +413,7 @@ mod tests {
             steps: vec![step],
             in_chain: true,
             is_final: true,
+            evaluated: false,
         };
 
         // Verify the expected behavior

@@ -38,30 +38,43 @@ impl EventEmitter {
     }
 
     /// Emit an event to all registered handlers
+    ///
+    /// Handlers are temporarily taken out of the registry before being called,
+    /// so the RefCell borrow is not held during handler execution. This allows
+    /// handlers to safely trigger code that registers new handlers (e.g.
+    /// Assertion::drop → initialize() → Reporter::init() → on_success()).
     pub fn emit(event: AssertionEvent) {
         match event {
-            AssertionEvent::Success(assertion) => {
-                SUCCESS_HANDLERS.with(|handlers| {
-                    let handlers = handlers.borrow();
-                    for handler in handlers.iter() {
+            AssertionEvent::Success(mut assertion) => {
+                assertion.evaluated = true;
+                SUCCESS_HANDLERS.with(|cell| {
+                    let taken = cell.replace(Vec::new());
+                    for handler in taken.iter() {
                         handler(assertion.clone());
                     }
+                    let mut new_during_emit = cell.replace(taken);
+                    cell.borrow_mut().append(&mut new_during_emit);
                 });
             }
-            AssertionEvent::Failure(assertion) => {
-                FAILURE_HANDLERS.with(|handlers| {
-                    let handlers = handlers.borrow();
-                    for handler in handlers.iter() {
+            AssertionEvent::Failure(mut assertion) => {
+                assertion.evaluated = true;
+                FAILURE_HANDLERS.with(|cell| {
+                    let taken = cell.replace(Vec::new());
+                    for handler in taken.iter() {
                         handler(assertion.clone());
                     }
+                    let mut new_during_emit = cell.replace(taken);
+                    cell.borrow_mut().append(&mut new_during_emit);
                 });
             }
             AssertionEvent::SessionCompleted => {
-                SESSION_COMPLETED_HANDLERS.with(|handlers| {
-                    let handlers = handlers.borrow();
-                    for handler in handlers.iter() {
+                SESSION_COMPLETED_HANDLERS.with(|cell| {
+                    let taken = cell.replace(Vec::new());
+                    for handler in taken.iter() {
                         handler();
                     }
+                    let mut new_during_emit = cell.replace(taken);
+                    cell.borrow_mut().append(&mut new_during_emit);
                 });
             }
         }
@@ -98,6 +111,16 @@ where
     });
 }
 
+/// Clear all handler registries. Used in tests to ensure each test starts
+/// with a clean slate, preventing handler accumulation across tests that share
+/// the same thread.
+#[cfg(test)]
+pub fn reset_handlers() {
+    SUCCESS_HANDLERS.with(|h| h.borrow_mut().clear());
+    FAILURE_HANDLERS.with(|h| h.borrow_mut().clear());
+    SESSION_COMPLETED_HANDLERS.with(|h| h.borrow_mut().clear());
+}
+
 // This is an internal function, deprecated in favor of using Config.apply()
 // but kept for compatibility with example and test code
 #[doc(hidden)]
@@ -125,6 +148,7 @@ mod tests {
 
     #[test]
     fn test_event_emitter_init() {
+        reset_handlers();
         // This will initialize the event system
         EventEmitter::init();
 
@@ -136,6 +160,7 @@ mod tests {
 
     #[test]
     fn test_on_success_handler() {
+        reset_handlers();
         // Create a flag to check if the handler was called
         let called = Rc::new(RefCell::new(false));
         let called_clone = called.clone();
@@ -155,6 +180,7 @@ mod tests {
 
     #[test]
     fn test_on_failure_handler() {
+        reset_handlers();
         // Create a flag to check if the handler was called
         let called = Rc::new(RefCell::new(false));
         let called_clone = called.clone();
@@ -174,6 +200,7 @@ mod tests {
 
     #[test]
     fn test_on_session_completed_handler() {
+        reset_handlers();
         // Create a flag to check if the handler was called
         let called = Rc::new(RefCell::new(false));
         let called_clone = called.clone();
@@ -192,6 +219,7 @@ mod tests {
 
     #[test]
     fn test_multiple_handlers() {
+        reset_handlers();
         // Create counters for each handler type
         let success_count = Rc::new(RefCell::new(0));
         let success_count_clone = success_count.clone();
@@ -234,6 +262,7 @@ mod tests {
 
     #[test]
     fn test_assertion_event_debug() {
+        reset_handlers();
         // Test that the Debug implementation works
         let assertion = create_test_assertion();
         let success_event = AssertionEvent::Success(assertion.clone());

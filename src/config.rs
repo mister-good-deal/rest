@@ -6,6 +6,7 @@ static INIT: Once = Once::new();
 
 // Environment variable to control enhanced output
 const ENV_ENHANCED_OUTPUT: &str = "REST_ENHANCED_OUTPUT";
+const DEFAULT_ENHANCED_OUTPUT: bool = true;
 
 /// Configuration for Rest's output and behavior
 pub struct Config {
@@ -37,16 +38,18 @@ impl Clone for Config {
 impl Config {
     /// Creates a new configuration with default settings
     pub fn new() -> Self {
-        // Check for environment variable to enable enhanced output
-        let enhanced_from_env = match env::var(ENV_ENHANCED_OUTPUT) {
-            Ok(val) => {
-                let lowercase_val = val.to_lowercase();
-                lowercase_val == "true" || lowercase_val == "1" || lowercase_val == "yes"
-            }
-            Err(_) => false, // Default to standard output if env var not set
+        Self::from_env(|key| env::var(key).ok())
+    }
+
+    /// Creates a new configuration by reading env vars through the provided closure.
+    /// This allows tests to inject mock env values without mutating process-global state.
+    fn from_env(get_var: impl Fn(&str) -> Option<String>) -> Self {
+        let enhanced_output = match get_var(ENV_ENHANCED_OUTPUT) {
+            Some(val) => bool_from_str(&val, DEFAULT_ENHANCED_OUTPUT),
+            None => DEFAULT_ENHANCED_OUTPUT,
         };
 
-        Self { use_colors: true, use_unicode_symbols: true, show_success_details: true, enhanced_output: enhanced_from_env }
+        Self { use_colors: true, use_unicode_symbols: true, show_success_details: true, enhanced_output }
     }
 
     /// Enable or disable colored output
@@ -111,93 +114,65 @@ pub fn is_enhanced_output_enabled() -> bool {
     return config.enhanced_output;
 }
 
+/// Convert from one of the allowed string values to a boolean.
+fn bool_from_str(val: &str, default: bool) -> bool {
+    match val.to_lowercase().as_str() {
+        "true" | "1" | "yes" | "on" => true,
+        "false" | "0" | "no" | "off" => false,
+        _ => {
+            eprintln!(
+                "WARNING: Unrecognized value for environment variable {}: {:?}. Defaulting to {}. (Allowed values: true, false, 1, 0, yes, no, on, off)",
+                ENV_ENHANCED_OUTPUT, val, default,
+            );
+            default
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::env;
-
-    // Helper function to reset environment variables
-    fn reset_env_var() {
-        unsafe {
-            env::remove_var(ENV_ENHANCED_OUTPUT);
-        }
-    }
 
     #[test]
     fn test_config_default() {
-        // Make sure we start with a clean environment
-        reset_env_var();
+        let config = Config::from_env(|_| None);
 
-        let config = Config::new();
-
-        // Check default values
         assert_eq!(config.use_colors, true);
         assert_eq!(config.use_unicode_symbols, true);
         assert_eq!(config.show_success_details, true);
-        assert_eq!(config.enhanced_output, false); // Default is false without env var
+        assert_eq!(config.enhanced_output, true); // Default is true without env var
     }
 
     #[test]
     fn test_config_env_var_true() {
-        // Test with environment variable set to true
-        reset_env_var();
-        unsafe {
-            env::set_var(ENV_ENHANCED_OUTPUT, "true");
-        }
-
-        let config = Config::new();
+        let config = Config::from_env(|_| Some("true".into()));
         assert_eq!(config.enhanced_output, true);
-
-        // Cleanup
-        reset_env_var();
     }
 
     #[test]
     fn test_config_env_var_false() {
-        // Test with environment variable set to false
-        reset_env_var();
-        unsafe {
-            env::set_var(ENV_ENHANCED_OUTPUT, "false");
-        }
-
-        let config = Config::new();
+        let config = Config::from_env(|_| Some("false".into()));
         assert_eq!(config.enhanced_output, false);
-
-        // Cleanup
-        reset_env_var();
     }
 
     #[test]
-    #[ignore] // This test is ignored because sometimes it fails on Github Actions
     fn test_config_env_var_alternative_values() {
-        // Test alternative true values
-        reset_env_var();
+        // True values
+        assert_eq!(Config::from_env(|_| Some("1".into())).enhanced_output, true);
+        assert_eq!(Config::from_env(|_| Some("yes".into())).enhanced_output, true);
+        assert_eq!(Config::from_env(|_| Some("on".into())).enhanced_output, true);
 
-        // Test "1" as true
-        unsafe {
-            env::set_var(ENV_ENHANCED_OUTPUT, "1");
-        }
-        let config = Config::new();
-        assert_eq!(config.enhanced_output, true);
+        // False values
+        assert_eq!(Config::from_env(|_| Some("0".into())).enhanced_output, false);
+        assert_eq!(Config::from_env(|_| Some("no".into())).enhanced_output, false);
+        assert_eq!(Config::from_env(|_| Some("off".into())).enhanced_output, false);
 
-        // Test "yes" as true
-        reset_env_var();
-        unsafe {
-            env::set_var(ENV_ENHANCED_OUTPUT, "yes");
-        }
-        let config = Config::new();
-        assert_eq!(config.enhanced_output, true);
+        // Case-insensitivity
+        assert_eq!(Config::from_env(|_| Some("TRUE".into())).enhanced_output, true);
+        assert_eq!(Config::from_env(|_| Some("False".into())).enhanced_output, false);
 
-        // Test case-insensitivity
-        reset_env_var();
-        unsafe {
-            env::set_var(ENV_ENHANCED_OUTPUT, "TRUE");
-        }
-        let config = Config::new();
-        assert_eq!(config.enhanced_output, true);
-
-        // Cleanup
-        reset_env_var();
+        // Garbage input falls back to default
+        assert_eq!(Config::from_env(|_| Some("garbage".into())).enhanced_output, DEFAULT_ENHANCED_OUTPUT);
     }
 
     #[test]
@@ -212,18 +187,27 @@ mod tests {
 
     #[test]
     fn test_config_clone() {
-        let config1 = Config::new().use_colors(false).enhanced_output(true);
+        let config1 = Config::from_env(|_| None).use_colors(false).enhanced_output(true);
 
         let config2 = config1.clone();
 
-        // Make sure the clone has the same values
         assert_eq!(config1.use_colors, config2.use_colors);
         assert_eq!(config1.use_unicode_symbols, config2.use_unicode_symbols);
         assert_eq!(config1.show_success_details, config2.show_success_details);
         assert_eq!(config1.enhanced_output, config2.enhanced_output);
     }
 
-    // Note: Testing apply() and initialize() would require mocking or complex setups
-    // since they interact with global state. For a unit test, we're focusing on the
-    // pure functionality that can be tested in isolation.
+    #[test]
+    fn test_bool_from_str() {
+        assert_eq!(bool_from_str("true", false), true);
+        assert_eq!(bool_from_str("false", true), false);
+        assert_eq!(bool_from_str("1", false), true);
+        assert_eq!(bool_from_str("0", true), false);
+        assert_eq!(bool_from_str("yes", false), true);
+        assert_eq!(bool_from_str("no", true), false);
+        assert_eq!(bool_from_str("on", false), true);
+        assert_eq!(bool_from_str("off", true), false);
+        assert_eq!(bool_from_str("invalid", true), true);
+        assert_eq!(bool_from_str("invalid", false), false);
+    }
 }

@@ -34,11 +34,11 @@ expressive assertions with readable error messages while maintaining compatibili
 
 ### v0.6.0 — Critical Fixes
 
-- [ ] Generic numeric matchers (support all integer and float types, not just i32)
-- [ ] Real regex matching in `to_match` (currently just uses `contains()`)
-- [ ] Show actual vs expected values in error messages
-- [ ] Remove unused/redundant dependencies (lazy_static, once_cell, thread_local)
-- [ ] Fix plural conjugation bug for variable names ending in "s"
+- [x] Generic numeric matchers (support all integer and float types, not just i32)
+- [x] Real regex matching in `to_match` (currently just uses `contains()`)
+- [x] Show actual vs expected values in error messages
+- [x] Remove unused/redundant dependencies (lazy_static, once_cell, thread_local)
+- [x] Fix plural conjugation bug for variable names ending in "s"
 
 ### v0.7.0 — New Matchers
 
@@ -111,6 +111,8 @@ For complete documentation of all matchers, please see the [Wiki documentation](
 
 ### Numeric Matchers
 
+Supports all 14 standard Rust numeric types: `i8`, `i16`, `i32`, `i64`, `i128`, `u8`, `u16`, `u32`, `u64`, `u128`, `isize`, `usize`, `f32`, `f64`.
+
 - **to_be_greater_than** - Checks if a number is greater than another
 - **to_be_greater_than_or_equal** - Checks if a number is greater than or equal to another
 - **to_be_less_than** - Checks if a number is less than another
@@ -130,7 +132,7 @@ For complete documentation of all matchers, please see the [Wiki documentation](
 - **to_contain** - Checks if a string contains a substring
 - **to_start_with** - Checks if a string starts with a prefix
 - **to_end_with** - Checks if a string ends with a suffix
-- **to_match** - Checks if a string matches a pattern
+- **to_match** - Checks if a string matches a regex pattern
 - **to_have_length** - Checks if a string has a specific length
 
 [View String Matchers documentation](https://github.com/mister-good-deal/rest/wiki/String-Matchers)
@@ -244,6 +246,7 @@ Rest enhances the standard test output with colors, symbols, and improved format
 
 - **Color Coding**: Green for passing tests, red for failing tests
 - **Unicode Symbols**: Check (✓) marks for passing conditions, cross (✗) for failing ones
+- **Actual Values in Failures**: Failed assertions display `(got <value>)` for immediate diagnostics
 - **Clean Variable Names**: Reference symbols (`&`) are automatically removed from output
 - **Consistent Indentation**: Multi-line output is properly indented for readability
 

@@ -102,7 +102,7 @@ jobs:
           echo "Pushing changes to master branch..."
           # Use token in the push URL to ensure authentication
           REMOTE_URL=$(git config --get remote.origin.url)
-          REPO_PATH=$(echo "$REMOTE_URL" | sed -E 's|https://github.com/(.+)\.git|\1|' || echo "$REMOTE_URL")
+          REPO_PATH=$(echo "$REMOTE_URL" | sed -E 's|https://github.com/(.+?)(\.git)?$|\1|')
           git push "https://x-access-token:${GH_TOKEN}@github.com/${REPO_PATH}.git" HEAD:master
           echo "✅ Committed and pushed CHANGELOG update to master branch"
       

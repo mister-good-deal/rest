@@ -66,50 +66,6 @@ impl AsFloat for f64 {
     }
 }
 
-impl AsFloat for &f32 {
-    fn is_nan_value(&self) -> bool {
-        (**self).is_nan()
-    }
-
-    fn is_infinite_value(&self) -> bool {
-        (**self).is_infinite()
-    }
-
-    fn is_finite_value(&self) -> bool {
-        (**self).is_finite()
-    }
-
-    fn is_close_to(&self, expected: &f32, tolerance: &f32) -> bool {
-        (**self - *expected).abs() <= *tolerance
-    }
-
-    fn display_value(&self) -> String {
-        format!("{}", **self)
-    }
-}
-
-impl AsFloat for &f64 {
-    fn is_nan_value(&self) -> bool {
-        (**self).is_nan()
-    }
-
-    fn is_infinite_value(&self) -> bool {
-        (**self).is_infinite()
-    }
-
-    fn is_finite_value(&self) -> bool {
-        (**self).is_finite()
-    }
-
-    fn is_close_to(&self, expected: &f64, tolerance: &f64) -> bool {
-        (**self - *expected).abs() <= *tolerance
-    }
-
-    fn display_value(&self) -> String {
-        format!("{}", **self)
-    }
-}
-
 /// Implementation for owned float values
 impl<V> FloatMatchers<V> for Assertion<V>
 where
@@ -139,6 +95,41 @@ where
 
     fn to_be_finite(self) -> Self {
         let result = self.value.is_finite_value();
+        let sentence = AssertionSentence::new("be", "finite").with_actual(format!("{:?}", self.value));
+
+        return self.add_step(sentence, result);
+    }
+}
+
+/// Implementation for referenced float values
+impl<V> FloatMatchers<V> for Assertion<&V>
+where
+    V: AsFloat + Debug + Clone,
+{
+    fn to_be_close_to(self, expected: V, tolerance: V) -> Self {
+        let result = (*self.value).is_close_to(expected, tolerance);
+        let sentence = AssertionSentence::new("be", format!("close to {} ± {}", expected.display_value(), tolerance.display_value()))
+            .with_actual(format!("{:?}", self.value));
+
+        return self.add_step(sentence, result);
+    }
+
+    fn to_be_nan(self) -> Self {
+        let result = (*self.value).is_nan_value();
+        let sentence = AssertionSentence::new("be", "NaN").with_actual(format!("{:?}", self.value));
+
+        return self.add_step(sentence, result);
+    }
+
+    fn to_be_infinite(self) -> Self {
+        let result = (*self.value).is_infinite_value();
+        let sentence = AssertionSentence::new("be", "infinite").with_actual(format!("{:?}", self.value));
+
+        return self.add_step(sentence, result);
+    }
+
+    fn to_be_finite(self) -> Self {
+        let result = (*self.value).is_finite_value();
         let sentence = AssertionSentence::new("be", "finite").with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
@@ -344,5 +335,39 @@ mod tests {
         crate::Reporter::disable_deduplication();
 
         expect!(f64::INFINITY).not().to_be_close_to(1.0, 1000.0);
+    }
+
+    // ── referenced values ───────────────────────────────────────────
+
+    #[test]
+    fn test_ref_f64_close_to() {
+        crate::Reporter::disable_deduplication();
+
+        let value = 0.1_f64 + 0.2_f64;
+        expect!(&value).to_be_close_to(0.3, 0.001);
+    }
+
+    #[test]
+    fn test_ref_nan() {
+        crate::Reporter::disable_deduplication();
+
+        let value = f64::NAN;
+        expect!(&value).to_be_nan();
+    }
+
+    #[test]
+    fn test_ref_infinite() {
+        crate::Reporter::disable_deduplication();
+
+        let value = f64::INFINITY;
+        expect!(&value).to_be_infinite();
+    }
+
+    #[test]
+    fn test_ref_finite() {
+        crate::Reporter::disable_deduplication();
+
+        let value = 1.0_f64;
+        expect!(&value).to_be_finite();
     }
 }

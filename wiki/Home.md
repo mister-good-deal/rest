@@ -9,6 +9,7 @@ FluentTest provides a comprehensive set of matchers for various types. All match
 - [Boolean Matchers](Boolean-Matchers)
 - [Equality Matchers](Equality-Matchers)
 - [Numeric Matchers](Numeric-Matchers)
+- [Float Matchers](Float-Matchers)
 - [String Matchers](String-Matchers)
 - [Collection Matchers](Collection-Matchers)
 - [HashMap Matchers](HashMap-Matchers)

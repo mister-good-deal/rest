@@ -126,6 +126,17 @@ Supports all 14 standard Rust numeric types: `i8`, `i16`, `i32`, `i64`, `i128`, 
 
 [View Numeric Matchers documentation](https://github.com/mister-good-deal/rest/wiki/Numeric-Matchers)
 
+### Float Matchers
+
+Supports approximate equality and special value classification for `f32` and `f64`.
+
+- **to_be_close_to** - Checks if a float is within a tolerance of an expected value
+- **to_be_nan** - Checks if a float is NaN
+- **to_be_infinite** - Checks if a float is infinite (positive or negative)
+- **to_be_finite** - Checks if a float is finite (not NaN or infinite)
+
+[View Float Matchers documentation](https://github.com/mister-good-deal/rest/wiki/Float-Matchers)
+
 ### String Matchers
 
 - **to_be_empty** - Checks if a string is empty

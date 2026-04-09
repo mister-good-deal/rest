@@ -66,6 +66,7 @@ pub mod matchers {
     pub use crate::backend::matchers::boolean::BooleanMatchers;
     pub use crate::backend::matchers::collection::{CollectionExtensions, CollectionMatchers};
     pub use crate::backend::matchers::equality::EqualityMatchers;
+    pub use crate::backend::matchers::float::FloatMatchers;
     pub use crate::backend::matchers::hashmap::HashMapMatchers;
     pub use crate::backend::matchers::numeric::NumericMatchers;
     pub use crate::backend::matchers::option::OptionMatchers;

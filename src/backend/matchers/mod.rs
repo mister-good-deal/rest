@@ -4,6 +4,7 @@ pub mod equality;
 pub mod hashmap;
 pub mod numeric;
 pub mod option;
+pub mod panic;
 pub mod result;
 pub mod string;
 
@@ -15,5 +16,6 @@ pub use equality::EqualityMatchers;
 pub use hashmap::HashMapMatchers;
 pub use numeric::NumericMatchers;
 pub use option::OptionMatchers;
+pub use panic::PanicAssertion;
 pub use result::ResultMatchers;
 pub use string::StringMatchers;

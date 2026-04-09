@@ -69,6 +69,7 @@ pub mod matchers {
     pub use crate::backend::matchers::hashmap::HashMapMatchers;
     pub use crate::backend::matchers::numeric::NumericMatchers;
     pub use crate::backend::matchers::option::OptionMatchers;
+    pub use crate::backend::matchers::panic::PanicAssertion;
     pub use crate::backend::matchers::result::ResultMatchers;
     pub use crate::backend::matchers::string::StringMatchers;
 }
@@ -76,8 +77,11 @@ pub mod matchers {
 /// Main prelude module containing everything needed for fluent testing
 pub mod prelude {
     pub use crate::backend::Assertion;
+    pub use crate::backend::matchers::PanicAssertion;
     pub use crate::expect;
+    pub use crate::expect_no_panic;
     pub use crate::expect_not;
+    pub use crate::expect_panic;
 
     // Fixture attribute macros
     pub use crate::{after_all, before_all, setup, tear_down, with_fixtures, with_fixtures_module};
@@ -126,6 +130,26 @@ macro_rules! expect_not {
 
         use $crate::backend::modifiers::NotModifier;
         $crate::backend::Assertion::new($expr, stringify!($expr)).not()
+    }};
+}
+
+/// Asserts that a closure panics. Returns a `PanicAssertion` for further message checks.
+#[macro_export]
+macro_rules! expect_panic {
+    ($closure:expr) => {{
+        $crate::auto_initialize_for_tests();
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe($closure));
+        $crate::backend::matchers::panic::PanicAssertion::new(result, stringify!($closure))
+    }};
+}
+
+/// Asserts that a closure does NOT panic.
+#[macro_export]
+macro_rules! expect_no_panic {
+    ($closure:expr) => {{
+        $crate::auto_initialize_for_tests();
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe($closure));
+        $crate::backend::matchers::panic::PanicAssertion::new(result, stringify!($closure)).not().to_panic()
     }};
 }
 

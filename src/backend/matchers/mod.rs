@@ -1,6 +1,7 @@
 pub mod boolean;
 pub mod collection;
 pub mod equality;
+pub mod float;
 pub mod hashmap;
 pub mod numeric;
 pub mod option;
@@ -12,6 +13,7 @@ pub mod string;
 pub use boolean::BooleanMatchers;
 pub use collection::{CollectionExtensions, CollectionMatchers};
 pub use equality::EqualityMatchers;
+pub use float::FloatMatchers;
 pub use hashmap::HashMapMatchers;
 pub use numeric::NumericMatchers;
 pub use option::OptionMatchers;

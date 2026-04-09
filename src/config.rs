@@ -210,4 +210,34 @@ mod tests {
         assert_eq!(bool_from_str("invalid", true), true);
         assert_eq!(bool_from_str("invalid", false), false);
     }
+
+    #[test]
+    fn test_config_apply_sets_global_state() {
+        // Apply a config with specific settings
+        let config = Config::new().use_colors(false).use_unicode_symbols(false).show_success_details(false).enhanced_output(true);
+        config.apply();
+
+        // Verify via the global config
+        {
+            let global = crate::reporter::GLOBAL_CONFIG.read().unwrap();
+            assert_eq!(global.use_colors, false);
+            assert_eq!(global.use_unicode_symbols, false);
+            assert_eq!(global.show_success_details, false);
+            assert_eq!(global.enhanced_output, true);
+        }
+
+        // Restore defaults
+        Config::new().apply();
+    }
+
+    #[test]
+    fn test_config_apply_enhanced_output_flag() {
+        let config = Config::new().enhanced_output(true);
+        config.apply();
+
+        assert!(is_enhanced_output_enabled(), "enhanced output should be enabled after apply");
+
+        // Restore defaults
+        Config::new().apply();
+    }
 }

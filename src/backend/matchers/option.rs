@@ -22,51 +22,36 @@ trait AsOption {
         U: PartialEq<Self::Item>;
 }
 
-// Implementation for Option<T>
-impl<T: Debug + PartialEq> AsOption for Option<T> {
-    type Item = T;
+/// Macro to generate AsOption implementations for owned and borrowed Option types.
+macro_rules! impl_as_option {
+    ($($ty:ty),+ $(,)?) => {
+        $(
+            impl<T: Debug + PartialEq> AsOption for $ty {
+                type Item = T;
 
-    fn is_some_option(&self) -> bool {
-        self.is_some()
-    }
+                fn is_some_option(&self) -> bool {
+                    self.is_some()
+                }
 
-    fn is_none_option(&self) -> bool {
-        self.is_none()
-    }
+                fn is_none_option(&self) -> bool {
+                    self.is_none()
+                }
 
-    fn contains_item<U>(&self, expected: &U) -> bool
-    where
-        U: PartialEq<Self::Item>,
-    {
-        match self {
-            Some(actual) => expected == actual,
-            None => false,
-        }
-    }
+                fn contains_item<U>(&self, expected: &U) -> bool
+                where
+                    U: PartialEq<Self::Item>,
+                {
+                    match self {
+                        Some(actual) => expected == actual,
+                        None => false,
+                    }
+                }
+            }
+        )+
+    };
 }
 
-// Implementation for &Option<T>
-impl<T: Debug + PartialEq> AsOption for &Option<T> {
-    type Item = T;
-
-    fn is_some_option(&self) -> bool {
-        self.is_some()
-    }
-
-    fn is_none_option(&self) -> bool {
-        self.is_none()
-    }
-
-    fn contains_item<U>(&self, expected: &U) -> bool
-    where
-        U: PartialEq<Self::Item>,
-    {
-        match self {
-            Some(actual) => expected == actual,
-            None => false,
-        }
-    }
-}
+impl_as_option!(Option<T>, &Option<T>);
 
 // Single implementation of OptionMatchers for any type that implements AsOption
 impl<T, V> OptionMatchers<T> for Assertion<V>

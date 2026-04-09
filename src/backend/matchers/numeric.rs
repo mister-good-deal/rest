@@ -78,119 +78,75 @@ impl_numeric_signed!(i8, i16, i32, i64, i128, isize);
 impl_numeric_unsigned!(u8, u16, u32, u64, u128, usize);
 impl_numeric_float!(f32, f64);
 
-/// Implementation for owned numeric values
-impl<V> NumericMatchers<V> for Assertion<V>
-where
-    V: Numeric + Debug + Clone,
-{
-    fn to_be_positive(self) -> Self {
-        let result = self.value > V::zero();
-        let sentence = AssertionSentence::new("be", "positive").with_actual(format!("{:?}", self.value));
+/// Helper trait to abstract over owned and borrowed numeric values.
+/// Allows a single `NumericMatchers` implementation for both `Assertion<V>` and `Assertion<&V>`.
+trait AsNumeric {
+    type Num: Numeric;
 
-        return self.add_step(sentence, result);
-    }
-
-    fn to_be_negative(self) -> Self {
-        let result = self.value.is_negative();
-        let sentence = AssertionSentence::new("be", "negative").with_actual(format!("{:?}", self.value));
-
-        return self.add_step(sentence, result);
-    }
-
-    fn to_be_zero(self) -> Self {
-        let result = self.value == V::zero();
-        let sentence = AssertionSentence::new("be", "zero").with_actual(format!("{:?}", self.value));
-
-        return self.add_step(sentence, result);
-    }
-
-    fn to_be_greater_than(self, expected: V) -> Self {
-        let result = self.value > expected;
-        let sentence = AssertionSentence::new("be", format!("greater than {}", expected)).with_actual(format!("{:?}", self.value));
-
-        return self.add_step(sentence, result);
-    }
-
-    fn to_be_greater_than_or_equal(self, expected: V) -> Self {
-        let result = self.value >= expected;
-        let sentence =
-            AssertionSentence::new("be", format!("greater than or equal to {}", expected)).with_actual(format!("{:?}", self.value));
-
-        return self.add_step(sentence, result);
-    }
-
-    fn to_be_less_than(self, expected: V) -> Self {
-        let result = self.value < expected;
-        let sentence = AssertionSentence::new("be", format!("less than {}", expected)).with_actual(format!("{:?}", self.value));
-
-        return self.add_step(sentence, result);
-    }
-
-    fn to_be_less_than_or_equal(self, expected: V) -> Self {
-        let result = self.value <= expected;
-        let sentence = AssertionSentence::new("be", format!("less than or equal to {}", expected)).with_actual(format!("{:?}", self.value));
-
-        return self.add_step(sentence, result);
-    }
-
-    fn to_be_in_range(self, range: Range<V>) -> Self {
-        let result = range.contains(&self.value);
-        let sentence =
-            AssertionSentence::new("be", format!("in range {}..{}", range.start, range.end)).with_actual(format!("{:?}", self.value));
-
-        return self.add_step(sentence, result);
-    }
-
-    fn to_be_even(self) -> Self {
-        let result = self.value.is_even();
-        let sentence = AssertionSentence::new("be", "even").with_actual(format!("{:?}", self.value));
-
-        return self.add_step(sentence, result);
-    }
-
-    fn to_be_odd(self) -> Self {
-        let result = self.value.is_odd();
-        let sentence = AssertionSentence::new("be", "odd").with_actual(format!("{:?}", self.value));
-
-        return self.add_step(sentence, result);
-    }
+    fn as_num(&self) -> Self::Num;
 }
 
-/// Implementation for referenced numeric values
-impl<V> NumericMatchers<V> for Assertion<&V>
+/// Generate `AsNumeric` implementations for each concrete numeric type and its reference.
+macro_rules! impl_as_numeric {
+    ($($t:ty),*) => {
+        $(
+            impl AsNumeric for $t {
+                type Num = $t;
+
+                fn as_num(&self) -> $t {
+                    *self
+                }
+            }
+
+            impl AsNumeric for &$t {
+                type Num = $t;
+
+                fn as_num(&self) -> $t {
+                    **self
+                }
+            }
+        )*
+    };
+}
+
+impl_as_numeric!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize, f32, f64);
+
+/// Unified implementation for both owned and referenced numeric values
+impl<A, V> NumericMatchers<V> for Assertion<A>
 where
+    A: AsNumeric<Num = V> + Debug + Clone,
     V: Numeric + Debug + Clone,
 {
     fn to_be_positive(self) -> Self {
-        let result = *self.value > V::zero();
+        let result = self.value.as_num() > V::zero();
         let sentence = AssertionSentence::new("be", "positive").with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_negative(self) -> Self {
-        let result = self.value.is_negative();
+        let result = self.value.as_num().is_negative();
         let sentence = AssertionSentence::new("be", "negative").with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_zero(self) -> Self {
-        let result = *self.value == V::zero();
+        let result = self.value.as_num() == V::zero();
         let sentence = AssertionSentence::new("be", "zero").with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_greater_than(self, expected: V) -> Self {
-        let result = *self.value > expected;
+        let result = self.value.as_num() > expected;
         let sentence = AssertionSentence::new("be", format!("greater than {}", expected)).with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_greater_than_or_equal(self, expected: V) -> Self {
-        let result = *self.value >= expected;
+        let result = self.value.as_num() >= expected;
         let sentence =
             AssertionSentence::new("be", format!("greater than or equal to {}", expected)).with_actual(format!("{:?}", self.value));
 
@@ -198,21 +154,22 @@ where
     }
 
     fn to_be_less_than(self, expected: V) -> Self {
-        let result = *self.value < expected;
+        let result = self.value.as_num() < expected;
         let sentence = AssertionSentence::new("be", format!("less than {}", expected)).with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_less_than_or_equal(self, expected: V) -> Self {
-        let result = *self.value <= expected;
+        let result = self.value.as_num() <= expected;
         let sentence = AssertionSentence::new("be", format!("less than or equal to {}", expected)).with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_in_range(self, range: Range<V>) -> Self {
-        let result = range.contains(self.value);
+        let v = self.value.as_num();
+        let result = range.contains(&v);
         let sentence =
             AssertionSentence::new("be", format!("in range {}..{}", range.start, range.end)).with_actual(format!("{:?}", self.value));
 
@@ -220,14 +177,14 @@ where
     }
 
     fn to_be_even(self) -> Self {
-        let result = self.value.is_even();
+        let result = self.value.as_num().is_even();
         let sentence = AssertionSentence::new("be", "even").with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);
     }
 
     fn to_be_odd(self) -> Self {
-        let result = self.value.is_odd();
+        let result = self.value.as_num().is_odd();
         let sentence = AssertionSentence::new("be", "odd").with_actual(format!("{:?}", self.value));
 
         return self.add_step(sentence, result);

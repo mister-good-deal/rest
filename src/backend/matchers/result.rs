@@ -18,55 +18,38 @@ trait AsResult<T: Debug + Clone, E: Debug + Clone> {
     fn contains_err<U: PartialEq<E> + Debug>(&self, expected: &U) -> bool;
 }
 
-// Implementation for Result<T, E>
-impl<T: Debug + Clone, E: Debug + Clone> AsResult<T, E> for Result<T, E> {
-    fn is_ok_result(&self) -> bool {
-        self.is_ok()
-    }
+/// Macro to generate AsResult implementations for owned and borrowed Result types.
+macro_rules! impl_as_result {
+    ($($ty:ty),+ $(,)?) => {
+        $(
+            impl<T: Debug + Clone, E: Debug + Clone> AsResult<T, E> for $ty {
+                fn is_ok_result(&self) -> bool {
+                    self.is_ok()
+                }
 
-    fn is_err_result(&self) -> bool {
-        self.is_err()
-    }
+                fn is_err_result(&self) -> bool {
+                    self.is_err()
+                }
 
-    fn contains_ok<U: PartialEq<T> + Debug>(&self, expected: &U) -> bool {
-        match self {
-            Ok(actual) => expected == actual,
-            Err(_) => false,
-        }
-    }
+                fn contains_ok<U: PartialEq<T> + Debug>(&self, expected: &U) -> bool {
+                    match self {
+                        Ok(actual) => expected == actual,
+                        Err(_) => false,
+                    }
+                }
 
-    fn contains_err<U: PartialEq<E> + Debug>(&self, expected: &U) -> bool {
-        match self {
-            Ok(_) => false,
-            Err(actual) => expected == actual,
-        }
-    }
+                fn contains_err<U: PartialEq<E> + Debug>(&self, expected: &U) -> bool {
+                    match self {
+                        Ok(_) => false,
+                        Err(actual) => expected == actual,
+                    }
+                }
+            }
+        )+
+    };
 }
 
-// Implementation for &Result<T, E>
-impl<T: Debug + Clone, E: Debug + Clone> AsResult<T, E> for &Result<T, E> {
-    fn is_ok_result(&self) -> bool {
-        self.is_ok()
-    }
-
-    fn is_err_result(&self) -> bool {
-        self.is_err()
-    }
-
-    fn contains_ok<U: PartialEq<T> + Debug>(&self, expected: &U) -> bool {
-        match self {
-            Ok(actual) => expected == actual,
-            Err(_) => false,
-        }
-    }
-
-    fn contains_err<U: PartialEq<E> + Debug>(&self, expected: &U) -> bool {
-        match self {
-            Ok(_) => false,
-            Err(actual) => expected == actual,
-        }
-    }
-}
+impl_as_result!(Result<T, E>, &Result<T, E>);
 
 // Single implementation for any type that implements AsResult
 impl<V, T, E> ResultMatchers<T, E> for Assertion<V>

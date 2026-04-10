@@ -45,4 +45,45 @@ mod tests {
         // Simple test that doesn't trigger thread-local issues
         expect!(value).to_be_greater_than(30).and().to_be_less_than(50);
     }
+
+    #[test]
+    fn test_and_three_step_chain() {
+        crate::Reporter::disable_deduplication();
+        crate::Reporter::enable_silent_mode();
+
+        let value = 42;
+        expect!(value).to_be_greater_than(10).and().to_be_less_than(100).and().to_be_positive();
+
+        crate::Reporter::disable_silent_mode();
+    }
+
+    #[test]
+    fn test_and_four_step_chain() {
+        crate::Reporter::disable_deduplication();
+        crate::Reporter::enable_silent_mode();
+
+        let value = 42;
+        expect!(value).to_be_greater_than(0).and().to_be_less_than(100).and().to_be_positive().and().to_be_even();
+
+        crate::Reporter::disable_silent_mode();
+    }
+
+    #[test]
+    fn test_and_preserves_chain_state() {
+        crate::Reporter::disable_deduplication();
+        crate::Reporter::enable_silent_mode();
+
+        let value = 42;
+        let assertion = expect!(value).to_be_greater_than(10).and();
+
+        // After and(), the assertion should be in a chain
+        assert!(assertion.in_chain, "should be marked as in_chain after and()");
+        assert!(!assertion.is_final, "should not be final after and()");
+
+        // Prevent drop evaluation
+        let mut assertion = assertion;
+        assertion.evaluated = true;
+
+        crate::Reporter::disable_silent_mode();
+    }
 }

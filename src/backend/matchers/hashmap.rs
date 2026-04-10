@@ -36,71 +36,46 @@ trait AsHashMap<K, V> {
         R: PartialEq + ?Sized;
 }
 
-// Implementation for &HashMap<K, V>
-impl<K, V> AsHashMap<K, V> for &HashMap<K, V>
-where
-    K: Hash + Eq,
-    V: Clone,
-{
-    fn is_map_empty(&self) -> bool {
-        self.is_empty()
-    }
+/// Macro to generate AsHashMap implementations for owned and borrowed HashMap types.
+macro_rules! impl_as_hashmap {
+    ($($ty:ty),+ $(,)?) => {
+        $(
+            impl<K, V> AsHashMap<K, V> for $ty
+            where
+                K: Hash + Eq,
+                V: Clone,
+            {
+                fn is_map_empty(&self) -> bool {
+                    self.is_empty()
+                }
 
-    fn map_length(&self) -> usize {
-        self.len()
-    }
+                fn map_length(&self) -> usize {
+                    self.len()
+                }
 
-    fn map_contains_key<Q>(&self, key: &Q) -> bool
-    where
-        K: Borrow<Q>,
-        Q: Hash + Eq + ?Sized,
-    {
-        self.contains_key(key)
-    }
+                fn map_contains_key<Q>(&self, key: &Q) -> bool
+                where
+                    K: Borrow<Q>,
+                    Q: Hash + Eq + ?Sized,
+                {
+                    self.contains_key(key)
+                }
 
-    fn map_contains_entry<Q, R>(&self, key: &Q, value: &R) -> bool
-    where
-        K: Borrow<Q>,
-        V: Borrow<R>,
-        Q: Hash + Eq + ?Sized,
-        R: PartialEq + ?Sized,
-    {
-        self.get(key).is_some_and(|v| v.borrow() == value)
-    }
+                fn map_contains_entry<Q, R>(&self, key: &Q, value: &R) -> bool
+                where
+                    K: Borrow<Q>,
+                    V: Borrow<R>,
+                    Q: Hash + Eq + ?Sized,
+                    R: PartialEq + ?Sized,
+                {
+                    self.get(key).is_some_and(|v| v.borrow() == value)
+                }
+            }
+        )+
+    };
 }
 
-// Implementation for HashMap<K, V>
-impl<K, V> AsHashMap<K, V> for HashMap<K, V>
-where
-    K: Hash + Eq,
-    V: Clone,
-{
-    fn is_map_empty(&self) -> bool {
-        self.is_empty()
-    }
-
-    fn map_length(&self) -> usize {
-        self.len()
-    }
-
-    fn map_contains_key<Q>(&self, key: &Q) -> bool
-    where
-        K: Borrow<Q>,
-        Q: Hash + Eq + ?Sized,
-    {
-        self.contains_key(key)
-    }
-
-    fn map_contains_entry<Q, R>(&self, key: &Q, value: &R) -> bool
-    where
-        K: Borrow<Q>,
-        V: Borrow<R>,
-        Q: Hash + Eq + ?Sized,
-        R: PartialEq + ?Sized,
-    {
-        self.get(key).is_some_and(|v| v.borrow() == value)
-    }
-}
+impl_as_hashmap!(&HashMap<K, V>, HashMap<K, V>);
 
 // Single implementation for any type that implements AsHashMap
 impl<M, K, V> HashMapMatchers<K, V> for Assertion<M>

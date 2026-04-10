@@ -28,157 +28,53 @@ trait AsCollection {
         U: PartialEq<Self::Item>;
 }
 
-// Implement AsCollection for slice references
-impl<T: PartialEq> AsCollection for &[T] {
-    type Item = T;
+/// Macro to generate AsCollection implementations for types that deref to slices.
+/// All supported types provide `.len()` and `.iter()` through auto-deref to `[T]`.
+macro_rules! impl_as_collection {
+    ([$($generics:tt)*] $ty:ty) => {
+        impl<$($generics)*> AsCollection for $ty {
+            type Item = T;
 
-    fn is_empty(&self) -> bool {
-        <[T]>::is_empty(self)
-    }
+            fn is_empty(&self) -> bool {
+                self.len() == 0
+            }
 
-    fn length(&self) -> usize {
-        self.len()
-    }
+            fn length(&self) -> usize {
+                self.len()
+            }
 
-    fn contains_item<U>(&self, item: &U) -> bool
-    where
-        U: PartialEq<Self::Item>,
-    {
-        self.iter().any(|x| item == x)
-    }
+            fn contains_item<U>(&self, item: &U) -> bool
+            where
+                U: PartialEq<Self::Item>,
+            {
+                self.iter().any(|x| item == x)
+            }
 
-    fn contains_all_items<U>(&self, items: &[U]) -> bool
-    where
-        U: PartialEq<Self::Item>,
-    {
-        items.iter().all(|item| self.contains_item(item))
-    }
+            fn contains_all_items<U>(&self, items: &[U]) -> bool
+            where
+                U: PartialEq<Self::Item>,
+            {
+                items.iter().all(|item| self.contains_item(item))
+            }
 
-    fn equals_items<U>(&self, other: &[U]) -> bool
-    where
-        U: PartialEq<Self::Item>,
-    {
-        if self.len() != other.len() {
-            return false;
+            fn equals_items<U>(&self, other: &[U]) -> bool
+            where
+                U: PartialEq<Self::Item>,
+            {
+                if self.len() != other.len() {
+                    return false;
+                }
+
+                self.iter().zip(other.iter()).all(|(a, b)| b == a)
+            }
         }
-
-        self.iter().zip(other.iter()).all(|(a, b)| b == a)
-    }
+    };
 }
 
-// Implement AsCollection for Vec references
-impl<T: PartialEq> AsCollection for &Vec<T> {
-    type Item = T;
-
-    fn is_empty(&self) -> bool {
-        Vec::is_empty(self)
-    }
-
-    fn length(&self) -> usize {
-        self.len()
-    }
-
-    fn contains_item<U>(&self, item: &U) -> bool
-    where
-        U: PartialEq<Self::Item>,
-    {
-        self.iter().any(|x| item == x)
-    }
-
-    fn contains_all_items<U>(&self, items: &[U]) -> bool
-    where
-        U: PartialEq<Self::Item>,
-    {
-        items.iter().all(|item| self.contains_item(item))
-    }
-
-    fn equals_items<U>(&self, other: &[U]) -> bool
-    where
-        U: PartialEq<Self::Item>,
-    {
-        if self.len() != other.len() {
-            return false;
-        }
-
-        self.iter().zip(other.iter()).all(|(a, b)| b == a)
-    }
-}
-
-// Implement AsCollection for owned Vecs
-impl<T: PartialEq> AsCollection for Vec<T> {
-    type Item = T;
-
-    fn is_empty(&self) -> bool {
-        Vec::is_empty(self)
-    }
-
-    fn length(&self) -> usize {
-        self.len()
-    }
-
-    fn contains_item<U>(&self, item: &U) -> bool
-    where
-        U: PartialEq<Self::Item>,
-    {
-        self.iter().any(|x| item == x)
-    }
-
-    fn contains_all_items<U>(&self, items: &[U]) -> bool
-    where
-        U: PartialEq<Self::Item>,
-    {
-        items.iter().all(|item| self.contains_item(item))
-    }
-
-    fn equals_items<U>(&self, other: &[U]) -> bool
-    where
-        U: PartialEq<Self::Item>,
-    {
-        if self.len() != other.len() {
-            return false;
-        }
-
-        self.iter().zip(other.iter()).all(|(a, b)| b == a)
-    }
-}
-
-// Implement AsCollection for array references
-impl<T: PartialEq, const N: usize> AsCollection for &[T; N] {
-    type Item = T;
-
-    fn is_empty(&self) -> bool {
-        N == 0
-    }
-
-    fn length(&self) -> usize {
-        N
-    }
-
-    fn contains_item<U>(&self, item: &U) -> bool
-    where
-        U: PartialEq<Self::Item>,
-    {
-        self.iter().any(|x| item == x)
-    }
-
-    fn contains_all_items<U>(&self, items: &[U]) -> bool
-    where
-        U: PartialEq<Self::Item>,
-    {
-        items.iter().all(|item| self.contains_item(item))
-    }
-
-    fn equals_items<U>(&self, other: &[U]) -> bool
-    where
-        U: PartialEq<Self::Item>,
-    {
-        if N != other.len() {
-            return false;
-        }
-
-        self.iter().zip(other.iter()).all(|(a, b)| b == a)
-    }
-}
+impl_as_collection!([T: PartialEq] &[T]);
+impl_as_collection!([T: PartialEq] &Vec<T>);
+impl_as_collection!([T: PartialEq] Vec<T>);
+impl_as_collection!([T: PartialEq, const N: usize] &[T; N]);
 
 // Implementation of CollectionMatchers that works with any type implementing AsCollection
 impl<T, V> CollectionMatchers<T> for Assertion<V>
